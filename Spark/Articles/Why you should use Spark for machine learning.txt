@@ -1,0 +1,55 @@
+Why you should use Spark for machine learning
+Spark MLlib enhances machine learning because of its simplicity, scalability, and easy integration with other tools
+               
+As organizations create more diverse and more user-focused data products and services, there is a growing need for machine learning, which can be used to develop personalizations, recommendations, and predictive insights. Traditionally, data scientists are able to solve these problems using familiar and popular tools such as R and Python. But as organizations amass greater volumes and greater varieties of data, data scientists are spending a majority of their time supporting their infrastructure instead of building the models to solve their data problems.
+
+To help solve this problem, Spark provides a general machine learning library -- MLlib -- that is designed for simplicity, scalability, and easy integration with other tools. With the scalability, language compatibility, and speed of Spark, data scientists can solve and iterate through their data problems faster. As can be seen in both the expanding diversity of use cases and the large number of developer contributions, MLlib’s adoption is growing quickly.
+
+[ Download the InfoWorld quick guide: Learn to crunch big data with R. | Sign up for InfoWorld's Big Data Report to stay atop all the latest news and developments in the field. ]
+How Spark enhances machine learning
+
+Python and R are popular languages for data scientists due to the large number of modules or packages that are readily available to help them solve their data problems. But traditional uses of these tools are often limiting, as they process data on a single machine where the movement of data becomes time consuming, the analysis requires sampling (which often does not accurately represent the data), and moving from development to production environments requires extensive re-engineering. 
+
+To help address these problems, Spark provides data engineers and data scientists with a powerful, unified engine that is both fast (100x faster than Hadoop for large-scale data processing) and easy to use. This allows data practitioners to solve their machine learning problems (as well as graph computation, streaming, and real-time interactive query processing) interactively and at much greater scale.
+
+Spark also provides many language choices, including Scala, Java, Python, and R. The 2015 Spark Survey that polled the Spark community shows particularly rapid growth in Python and R. Specifically, 58 percent of respondents were using Python (a 49 percent increase over 2014) and 18 percent were already using the R API (which was released only three months before the survey).
+
+With more than 1,000 code contributors in 2015, Apache Spark is the most actively developed open source project among data tools, big or small. Much of the focus is on Spark’s machine learning library, MLlib, with more than 200 individuals from 75 organizations providing 2,000-plus patches to MLlib alone.
+
+The importance of machine learning has not gone unnoticed, with 64 percent of the 2015 Spark Survey respondents using Spark for advanced analytics and 44 percent creating recommendation systems. Clearly, these are sophisticated users. In fact, 41 percent of the survey respondents identified themselves as data engineers, while 22 percent identified themselves as data scientists.
+
+spark languages
+Source: 2015 Spark Survey
+Spark’s design for machine learning
+
+From the inception of the Apache Spark project, MLlib was considered foundational for Spark’s success. The key benefit of MLlib is that it allows data scientists to focus on their data problems and models instead of solving the complexities surrounding distributed data (such as infrastructure, configurations, and so on). The data engineers can focus on distributed systems engineering using Spark’s easy-to-use APIs, while the data scientists can leverage the scale and speed of Spark core. Just as important, Spark MLlib is a general-purpose library, providing algorithms for most use cases while at the same time allowing the community to build upon and extend it for specialized use cases.
+
+The advantages of MLlib’s design include:
+
+Simplicity: Simple APIs familiar to data scientists coming from tools like R and Python. Novices are able to run algorithms out of the box while experts can easily tune the system by adjusting important knobs and switches (parameters).
+Scalability: Ability to run the same ML code on your laptop and on a big cluster seamlessly without breaking down. This lets businesses use the same workflows as their user base and data sets grow.
+Streamlined end-to-end: Developing machine learning models is a multistep journey from data ingest through trial and error to production. Building MLlib on top of Spark makes it possible to tackle these distinct needs with a single tool instead of many disjointed ones. The advantages are lower learning curves, less complex development and production environments, and ultimately shorter times to deliver high-performing models.
+Compatibility: Data scientists often have workflows built up in common data science tools, such as R, Python pandas, and scikit-learn. Spark DataFrames and MLlib provide tooling that makes it easier to integrate these existing workflows with Spark. For example, SparkR allows users to call MLlib algorithms using familiar R syntax, and Databricks is writing Spark packages in Python to allow users to distribute parts of scikit-learn workflows.
+At the same time, Spark allows data scientists to solve multiple data problems in addition to their machine learning problems. The Spark ecosystem can also solve graph computations (via GraphX), streaming (real-time calculations), and real-time interactive query processing with Spark SQL and DataFrames. The ability to employ the same framework to solve many different problems and use cases allows data professionals to focus on solving their data problems instead of learning and maintaining a different tool for each scenario.
+
+spark ecosystem
+Spark MLlib use cases
+
+There are a number of common business use cases surrounding Spark MLlib. The examples include, but are not limited to, the following:
+
+Marketing and advertising optimization
+What products should we recommend to each user to maximize engagement or revenue?
+Based on user site behavior, what is the probability the user will click on the available ads?
+Security monitoring/fraud detection, including risk assessment and network monitoring
+Which users show anomalous behavior, and which ones might be malicious?
+Operational optimization such as supply chain optimization and preventative maintenance
+Where in our system are failures likely to occur, requiring preventive checks?
+Many compelling business scenarios and technical solutions are being solved today with Spark MLlib, including Huawei on Frequent Pattern Mining, OpenTable’s Dining Recommendations, and Verizon’s Spark MLlib’s ALS-based Matrix Factorization. Some additional examples:
+
+NBC Universal stores hundreds of terabytes of media for international cable TV. To save on costs, it takes the media offline when it is unlikely to be used soon. The company uses Spark MLlib Support Vector Machines to predict which files will not be used.
+The Toyota Customer 360 Insights Platform and Social Media Intelligence Center is powered by Spark MLlib. Toyota uses MLlib to categorize and prioritize social media interactions in real-time.
+Radius Intelligence uses Spark MLlib to process billions of data points from customers and external data sources, including 25 million canonical businesses and hundreds of millions of business listings from various sources.
+ING uses Spark in its data analytics pipeline for anomaly detection. The company’s machine learning pipeline uses Spark decision tree ensembles and k-means clustering.
+Spark is not only a faster and easier way to understand our data. More fundamentally, Spark changes the way we can do data engineering and data sciences, by allowing us to solve a diverse range of data problems -- from machine learning to streaming, structured queries to graph computation -- in our language of choice.
+
+Spark MLlib allows novice data practitioners to easily work with their algorithms out of the box while experts can tune as desired. Data engineers can focus on distributed systems, and data scientists can focus on their machine learning algorithms and models. Spark enhances machine learning because data scientists can focus on the data problems they really care about while transparently leveraging the speed, ease, and integration of Spark’s unified platform.
