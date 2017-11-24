@@ -1,6 +1,6 @@
 **If you don't want to spend some time configuring the environment, you can just use  [Cloudera Quickstart VM for CDH 5.12](https://www.cloudera.com/downloads/quickstart_vms/5-12.html)**
 
-First we need to send the files to HDFS. For this exercise I've used some articles I found about Spark, you can find it on [articles](articles).
+First we need to send the files to HDFS. For this exercise I've used some articles I found about Spark, you can find it on [articles](Articles).
 ```
 $ hdfs dfs -put articles /user/cloudera/input
 $ hdfs dfs -ls /user/cloudera/input/articles
@@ -9,7 +9,6 @@ Found 4 items
 -rw-r--r--   1 cloudera cloudera      31830 YYYY-MM-DD HH:mm /user/cloudera/input/articles/Apache Spark in Python Beginners Guide
 -rw-r--r--   1 cloudera cloudera      30858 YYYY-MM-DD HH:mm /user/cloudera/input/articles/Spark Cluster Computing with Working Sets
 -rw-r--r--   1 cloudera cloudera       8678 YYYY-MM-DD HH:mm /user/cloudera/input/articles/Why you should use Spark for machine learning
-
 ```
 
 For convenience I've used Spark from command line, you can open it executing the following command
@@ -62,7 +61,6 @@ But for this exercise, we need to analyze only the content of all files, so we n
 ```
 scala> val contents = files.map{ case (fileName, content) => content }
 content: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[2] at map at <console>:29
-
 ```
 
 Basically this command is reading each file of the ```files``` array and mapping the content of it to the  ```contents``` RDD, which is an ```Array[String]```.
@@ -84,7 +82,6 @@ Now that we have all lines, let's break it into words, using the same command ab
 ```
 scala>val allWords = allLines.flatMap(line => line.split(" "))
 allWords: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[4] at flatMap at <console>:33
-
 ```
 
 Now we have an RDD of ```Array[String]`` with all words of all files, so far, so good!
@@ -135,7 +132,7 @@ sorted: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[7] at sortBy at <con
 All good, let's save the results!
 
 ```
-scala> sorted.saveAsTextFile("/user/cloudera/output/articles")
+scala> sorted.saveAsTextFile("/user/cloudera/output/Articles")
 ```
 
 Let's see what we've got on HDFS, in a new terminal server (or we can leave Spark using ```exit``` command) execute the following command list the files
