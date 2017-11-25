@@ -9,9 +9,11 @@ val allLines = contents.flatMap(file => file.split("\n"))
 val allWords = allLines.flatMap(line => line.split(" "))
 
 val df = allWords.toDF()
-val result = df.distinct().sort($"_1".desc)
-val rdd = result.rdd
-rdd.saveAsTextFile("output/listWordsSparkSql")
+val sorted = df.distinct().sort($"_1".desc)
+val rdd = sorted.rdd
+val result = rdd.map(row => row(0).toString)
+
+result.saveAsTextFile("output/listWordsSparkSql")
 
 hdfs dfs -cat output/listWordsSparkSql/part-*
 ```
