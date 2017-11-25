@@ -1,6 +1,7 @@
 # MongoDB
 
-I've used Python for all exercises on this module, so I suggest you use [Anaconda](https://www.anaconda.com/download/).
+## How to...
+- [Use mongo shell](Mongo-Shell.MD)
 
 ## Exercises
 ```
@@ -8,4 +9,6 @@ I've used Python for all exercises on this module, so I suggest you use [Anacond
 ```
 
 ## References
+- [Anaconda](https://www.anaconda.com/download/)
 - [MongoDB](https://www.mongodb.com/)
+- [MongoDB Docs](https://docs.mongodb.com/)

@@ -2,6 +2,7 @@
 
 First we need to send the files to HDFS. For this exercise I've used some articles I found about Spark, you can find it on [articles](Articles).
 ```
+$ hdfs dfs -mkdir /user/cloudera/input
 $ hdfs dfs -put articles /user/cloudera/input
 $ hdfs dfs -ls /user/cloudera/input/articles
 Found 4 items
