@@ -22,14 +22,11 @@ import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
 
-/**
- * List Words UP - Big Data - Final project Author Caio Cavalcanti
- *
- */
 public class ListWords {
 
 	public static class Map extends MapReduceBase implements
 			Mapper<Object, Text, Text, NullWritable> {
+
 		NullWritable out = NullWritable.get();
 		private Text word = new Text();
 
