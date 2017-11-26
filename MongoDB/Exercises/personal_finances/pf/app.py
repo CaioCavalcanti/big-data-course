@@ -5,7 +5,6 @@ from flask_restplus import Resource, Api
 from pf import settings
 from pf.api.endpoints.categories import ns as pf_categories_namespace
 from pf.api.restplus import api
-from pf.db import db
 
 app = Flask(__name__)
 logging.config.fileConfig('logging.conf')
@@ -22,7 +21,7 @@ def configure_app(flask_app):
 def initialize_app(flask_app):
     configure_app(flask_app)
 
-    blueprint = Blueprint('api', __name__)
+    blueprint = Blueprint('pf', __name__)
     api.init_app(blueprint)
     api.add_namespace(pf_categories_namespace)
     flask_app.register_blueprint(blueprint)

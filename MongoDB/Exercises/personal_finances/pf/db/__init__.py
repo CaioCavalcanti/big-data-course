@@ -1,4 +1,5 @@
-from pymongo import MongoClient
+from pf import app
+from flask_pymongo import PyMongo
 
-connection = MongoClient('localhost', 27017)
-db = connection.pf
+# Connect to MongoDB and call the connection "pf".
+mongo = PyMongo(app)
