@@ -260,7 +260,6 @@ TODO...
 - Date-time
 - Text / items
 
-
 ## Logistic Regression
 *Logistic regression is a classification algorithm... that uses a regression... to model the probability of the discrete objective*
 
@@ -278,12 +277,232 @@ TODO...
     - ...
 - Can include a coefficient for "missing"
 
+## What is time series?
+- Traditional machine learning data is assumed to be independent & identically distributed
+    - Independent
+    - Identically distributed: come form the same distribution
+
+## Exponential smoothing
+**Idea**: each new value in the series depends on all previous values with a decaying weight
+
+**Problem**:
+
+**Trend**: a persistent long-term pattern
+- Additive
+- Multiplicative
+
+**Seasonality**: a recurring shorter-term pattern
+- Additive
+- Multiplicative
+
+**Error**: cumulative error from the smoothing
+- Additive
+- Multiplicative
+
+***These can all be modeled with time series as weel!***
+
+## Time Series Evaluation
+TODO
+
+# Unsupervised Learning
+## Clustering
+- Is an unsupervised learning technique
+- No labels necessary
+- Useful to find similar instances
+- Finds "self-similar"groups of instances
+- Defines each group by a "centroid"
+
+### Useful for
+- Customer segmentation
+- Similarity
+- Active learning
+    - Rather than sample randomly, use clustering to group by similarity and then test a sample for each group
+- Item discovery
+
+## K-means Algorithm
+- Find "best"
+
+## K++ initial centers
+- k++
+
+## Finding K: G-Means
+
+## Anomaly Detection
+- An unsupervised learning technique
+- Find instances that do not matcg
+- Defines each unusual instance by an "anomaly score"
+
+### Used for
+- Removing outliers from datasets
+- Intrusion detection
+- Fraud
+- Model Competence
+    - After putting a model into production, data that is being predicted can become statistcally different than the training data.
+    - Train an anomaly detector at the same time as the model
+    - The data you are predicting doesn't match your training data (high anomaly score)
+- Benford's Law
+    - In real-life numeric sites the small digits occur disproportionately often as leading significant digits
+- Univariate approach (using normal distribution)
+- Multivariate matters
+- Random splits
+    - Grow a random decision tree until each instance from a sample is in its own leaf
+    - It will be hard to isolate each one
+    - At the end you get the average depth of each leaf (harder from easier)
+    - **Isolation Forest Scoring**
+
+## 1-Class classifier
+- Get your positive class
+- Use anomaly detection to check the ones different from the positive class
+
+## Association discovery
+- Unsupervised learning technique
+- Finds "significant" correlations/associations/relations
+- Express them as "if then" rules 
+
+### Use cases
+- Data discovery
+- Market basket
+
+### What is interesting?
+- In-frequent patterns can be strong, but are they interesting?
+- Frequent patterns can be strong, but are they interesting?
+
+### Association Metrics
+- Coverage
+    - Percentage of instances which match antecedent "A"
+        - How much of the trainig data is covered by the antecedent
+- Support
+    - Percentage of instancecs which match antencendet "A" and consequent "C"
+- Confidence
+- Lift
+    - Ratio of observed support to support if A and C were statistically independent
+        - Support / (p(A) * p(C)) == Confidence / p(C)
+    - Problem: if p(C) is small then... lift may be large
+    - < 1 = negative correlation
+    - > 1 = positive correlation
+    - = 1 = no corrlation
+- Leverage
+
+## Topic Models
+- Learns only from text fields
+- Finds hidden topics that model the text
+
+### Intuition
+- Written documents have meaning
+- The topic can be thought of as increasing the probability of certain words
+- Each text field in a row is concatenated into a document
+- The documents are analyzed to generate "k"related topics
+- Each topic is represented by a distribution of the probabilities
+
+### Topic Distribution
+- Any given document is likely a mixture of the modeled topics
+- This can be represented as a distribution of topic probabilities
+
+### Clustering
+You can use the topic distribution to create new features for each row, with their probability for each topic and then generate the clusters
+
+### Why to use TM?
+- As a preprocessor for other techniques
+    - Building better models
+- Bootstrapping categories for classification
+- Recommendation
+- Discovery in large, heterogeneous text datasets
+
+### TM Tips
+- Setting k
+    - Much like k=means, the best value is data specific
+- Tunning the model
+    - Remove common, useless terms
+    - Set term limit higher
+
+## Text analysis
+- Stem words > tokens
+- Remove tokens that occur too often
+- Remove tokens that do not occur often enough
+- Count the occurrences of remaining words
+- Transform the remainig words in a vector, counting each word
+
+## TA vs TM
+|TA|TM|
+|---|---|
+|Creates thousands of hidden token counts|Creates tens of topics that model the text|
+|Token counts are independently uninsteresting|Topics are independently interesing|
+|No semantic importance|...|
+
+## Basic Transformation
+### Obstacles
+- Data structure (data transformation)
+    - Scattered across systems
+    - Wrong shape
+    - Unalbelled data
+- Data value (feature engineering)
+    - Format: spelling, units
+    - Missing values
+    - Non-optimal correlation
+    - Non-existant correlation
+- Data significance (feature selection)
+    - Unwanted: PII, non-preferred
+    - Expensive to collect
+    - Isidious: leakage, obviously correlated
+
+### Process
+- Define a clear idea of the goal
+    - Sometimes this come later...
+    - Understand what ML tasks will achieve the goal
+- Transform the data
+- Feature engineering
+    - Transform the data you have into the data you actually need
+- Evaluate
+    - Try it on a small scale
+    - Accept that you might have to start over
+- But when it works, automate!!!
+
+### ML Ready Data
+- Tabular data
+    - Each row is one instance
+
+### Data labelling
+- Data is often not labelled
+    - Create labels with a transformation
+
+### Time Windows
+Create new features using values from different time periods
+
+### Updates
+Need a current view of the data, but new data only come in batches of change
+
+## Stream batch
+
+## Feature Engineering
+Applying domain knowledge of the data to create new features that allow ML algorithms to work better, or to work at all
+- This is really important - more than algorithm selection
+- ML algorithms have no deeper understanding of data
+- **The magic is the ability to find patterns quickly and efficiently**
+- ML algorithms only know what you tell/show it with data
+- Intuition can be risky
+
+### Feature selection
+- Leakage
+    - Stock close predicts stock open
+    - Sales pipeline where steps n-1 has no other outcome than step n
+
+### Evaluate & Automate
+
+## API
+- Workflow automation - reduce drudgery
+- Abstraction - reuse code
+- Composability - powerful combinations of APIs
+- Integration
+- Automate deployment
+- Repeatable results
+
 ## Important infomartion about your dataset and model
 ### Show statistics for each field on your dataset
 - Count
 - Missing
 - Histogram
-    - How you do this for text field?
+    - How you do this for text fields?
+
 ### Show your model evaluation
 - Accuracy
 - Precision
@@ -291,3 +510,6 @@ TODO...
 - F-measure
 - Phi-coefficient
 
+### Anomaly check
+- Check for anomaly on the data before training
+- Check the anomaly score of the data before predicting
