@@ -18,6 +18,37 @@ def blog_index():
 
     return bottle.template('blog_index', dict(posts=posts))
 
+@bottle.route("/post/<permalink>")
+def get_post(permalink="notfound"):
+    db = connect_db()
+    posts = db.posts
+
+    permalink = cgi.escape(permalink)
+    path_re = re.compile(r"^([^\.]+).json$")
+
+    print "About to query on permalin ", permalink
+
+    post = posts.find_one({'permalink': permalink})
+
+    if post == None:
+        bottle.redirect("PostNotFound")
+    
+    post['date'] = post['date'].strftime("%A, %B %d %Y at %I:%M%p")
+
+    if 'tags' not in post:
+        post['tags'] = []
+
+    if 'comments' not in post:
+        post['comments'] = []
+    
+    comment = {
+        'name': '',
+        'email': '',
+        'message': ''
+    }
+
+    return bottle.template("post_view", dict(post=post, username="undefined", comment=comment))
+
 @bottle.route("/newpost")
 def get_newpost():
     return bottle.template("post_new", dict(subject="", body="",errors="", tags=""))
@@ -42,14 +73,23 @@ def post_newpost():
     newline = re.compile('\r?\n')
     formatted_post = newline.sub("<p>",escaped_post)
 
-    # Splitting tags string into array (and formatting)
-    if tags != "":
-        tags = tags.split(',')
-        tags = [tag.strip() for tag in tags]
+    tags = extrac_tags(tags)
 
     permalink = insert_post(title, post, tags, "undefined")
 
     bottle.redirect("/post/" + permalink)
+
+def extrac_tags(tags):
+    whitespace = re.compile('\s')
+    nowhite = whitespace.sub("",tags)
+    l_tags = nowhite.split(',')
+
+    cleaned = []
+    for tag in l_tags:
+        if tag not in cleaned and tag != "":
+            cleaned.append(tag)
+
+    return cleaned
 
 def insert_post(title, body, tags, author):
     print "Inserting post....", title
