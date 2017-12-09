@@ -11,7 +11,6 @@ import os
 
 from pymongo import MongoClient
 
-
 @bottle.route("/")
 def blog_index():
     posts = get_formatted_posts()
@@ -28,7 +27,7 @@ def get_post(permalink="notfound"):
     post = get_post_by_permalink(permalink)
 
     if post == None:
-        bottle.redirect("PostNotFound")
+        bottle.redirect("/PostNotFound")
     
     comment = {
         'author': '',
@@ -106,6 +105,10 @@ def post_comment():
         return bottle.template("post_view", dict(post=post, username="indefinido", errors=errors, comment=comment))
     
     return bottle.redirect("post/" + permalink)
+
+@bottle.route("/PostNotFound")
+def get_post_not_found():
+    return bottle.template("post_not_found")
 
 def extrac_tags(tags):
     whitespace = re.compile('\s')
