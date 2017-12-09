@@ -20,34 +20,23 @@ def blog_index():
 
 @bottle.route("/post/<permalink>")
 def get_post(permalink="notfound"):
-    db = connect_db()
-    posts = db.posts
+    print "About to query on permalink ", permalink
 
     permalink = cgi.escape(permalink)
     path_re = re.compile(r"^([^\.]+).json$")
 
-    print "About to query on permalin ", permalink
-
-    post = posts.find_one({'permalink': permalink})
+    post = get_post_by_permalink(permalink)
 
     if post == None:
         bottle.redirect("PostNotFound")
     
-    post['date'] = post['date'].strftime("%A, %B %d %Y at %I:%M%p")
-
-    if 'tags' not in post:
-        post['tags'] = []
-
-    if 'comments' not in post:
-        post['comments'] = []
-    
     comment = {
-        'name': '',
+        'author': '',
         'email': '',
         'message': ''
     }
 
-    return bottle.template("post_view", dict(post=post, username="undefined", comment=comment))
+    return bottle.template("post_view", dict(post=post, username="undefined", comment=comment, errors=None))
 
 @bottle.route("/newpost")
 def get_newpost():
@@ -78,6 +67,45 @@ def post_newpost():
     permalink = insert_post(title, post, tags, "undefined")
 
     bottle.redirect("/post/" + permalink)
+
+@bottle.post("/comment")
+def post_comment():
+    # Get form data
+    author = bottle.request.forms.get('name')
+    email = bottle.request.forms.get('email')
+    message = bottle.request.forms.get('message')
+    permalink = bottle.request.forms.get('permalink')
+
+    permalink = cgi.escape(permalink)
+
+    post = get_post_by_permalink(permalink)
+
+    if post == None:
+        return bottle.redirect('PostNotFound')
+
+    if author or email or message:
+        try:
+            print "About to insert new comment..."
+            
+            comment = { 'author': author, 'email': email, 'message': message, 'date': datetime.utcnow() }
+            insert_comment(permalink, comment)
+
+            print "New comment inserted, redirecting to post"
+        except Exception as e:
+            print "New comment unexpected error", sys.exc_info()[0]
+            a = sys.exc_info()
+
+            errors = "Sorry, we couldn't save you comment. Please try again."
+            return bottle.template("post_view", dict(post=post, username="indefinido", errors=errors, comment=comment))
+    else:
+        comment = { 'author': '', 'email': '', 'message': '' }
+
+        errors="Post must contain your name and an actual comment."
+
+        print "New comment error... returning form with errors"
+        return bottle.template("post_view", dict(post=post, username="indefinido", errors=errors, comment=comment))
+    
+    return bottle.redirect("post/" + permalink)
 
 def extrac_tags(tags):
     whitespace = re.compile('\s')
@@ -122,6 +150,12 @@ def insert_post(title, body, tags, author):
     
     return permalink
 
+def insert_comment(post_permalink, comment):
+    db = connect_db()
+    posts = db.posts
+
+    posts.update({ 'permalink': post_permalink }, {'$push': { 'comments': comment } }, upsert=False)
+
 def get_formatted_posts():
     print "Getting posts"
 
@@ -151,6 +185,28 @@ def get_formatted_posts():
         })
 
     return formatted_posts
+
+def get_post_by_permalink(permalink):
+    db = connect_db()
+    posts = db.posts
+
+    post = posts.find_one({'permalink': permalink})
+    
+    if post == None:
+        return post
+
+    post['date'] = post['date'].strftime("%A, %B %d %Y at %I:%M%p")
+
+    if 'tags' not in post:
+        post['tags'] = []
+
+    if 'comments' not in post:
+        post['comments'] = []
+    else:
+        for comment in post['comments']:
+            comment['date'] = comment['date'].strftime("%A, %B %d %Y at %I:%M%p")
+    
+    return post
 
 def connect_db():
     connection = MongoClient('localhost', 27017)
