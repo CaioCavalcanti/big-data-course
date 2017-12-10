@@ -1,0 +1,32 @@
+% rebase('base', title='Categories')
+<h3>Categories</h3>
+<div class="">
+    <a href="/categories/new" class="waves-effect waves-light btn">
+        <i class="material-icons left">add</i> New category
+    </a>
+</div>
+<p>{{ len(categories) }} categories:</p>
+
+%if len(categories) > 0:
+<ul class="collapsible">
+    %for category in categories:
+    <li>
+        <div class="collapsible-header">{{ category['name'] }}</div>
+        <div class="collapsible-body">
+            <label>Created by:
+                <span>{{ category['created_by'] }}</span>
+            </label>
+            <label>Created:
+                <span>{{ category['date'] }}</span>
+            </label>
+            <a href="/categories/{{ category['name'] }}" class="waves-effect waves-light btn">{{ category['posts'] }} posts</a>
+        </div>
+    </li>
+    %end
+</ul>
+%end
+
+<script>
+    var elem = document.querySelector('.collapsible');
+    var instance = new M.Collapsible(elem);
+</script>

@@ -1,32 +1,28 @@
 import bottle
-
 import cgi
 import re
-from datetime import datetime
 import random
 import hmac
 import user
 import sys
 import os
+from datetime import datetime
 from pymongo import MongoClient
+from os.path import dirname, join, abspath
 
-from os.path import dirname
-
-import user
+# Local
 import database as db
+import user
+import category
 
-appPath = dirname(__file__)
-
-@bottle.route('/static/<filepath:path>')
-def server_static(filepath):
-    return bottle.static_file(filepath, root=os.path.join(appPath, 'static'))
 
 @bottle.route("/")
 def blog_index():
     posts = get_formatted_posts()
     user = login_check()
 
-    return bottle.template('blog_index', { 'posts': posts, 'user': user })
+    return bottle.template('blog_index', {'posts': posts, 'user': user})
+
 
 @bottle.route("/post/<permalink>")
 def get_post(permalink="notfound"):
@@ -39,17 +35,19 @@ def get_post(permalink="notfound"):
 
     if post == None:
         bottle.redirect("/PostNotFound")
-    
-    user = login_check()
-    comment = { 'author': user, 'email': user, 'message': '' }
 
-    return bottle.template("post_view", { 'post': post, 'user': user, 'comment': comment, 'errors': None })
+    user = login_check()
+    comment = {'author': user, 'email': user, 'message': ''}
+
+    return bottle.template("post_view", {'post': post, 'user': user, 'comment': comment, 'errors': None})
+
 
 @bottle.route("/newpost")
 def get_newpost():
     if login_check():
-        return bottle.template("post_new", dict(subject="", body="",errors="", tags=""))
+        return bottle.template("post_new", dict(subject="", body="", errors="", tags=""))
     return bottle.redirect('/unauthorized')
+
 
 @bottle.post("/newpost")
 def post_newpost():
@@ -65,21 +63,22 @@ def post_newpost():
     if (title == "" or post == ""):
         errors = "Posts must contain a tittle and blog entry"
         return bottle.template("post_new", dict(
-            subject=cgi.escape(title, quote = True),
+            subject=cgi.escape(title, quote=True),
             body=cgi.escape(post, quote=True),
             tags=tags,
             errors=errors))
-    
-    escaped_post = cgi.escape(post, quote = True)
+
+    escaped_post = cgi.escape(post, quote=True)
 
     newline = re.compile('\r?\n')
-    formatted_post = newline.sub("<p>",escaped_post)
+    formatted_post = newline.sub("<p>", escaped_post)
 
     tags = extrac_tags(tags)
 
     permalink = insert_post(title, post, tags, user)
 
     bottle.redirect("/post/" + permalink)
+
 
 @bottle.post("/comment")
 def post_comment():
@@ -99,8 +98,9 @@ def post_comment():
     if author or email or message:
         try:
             print "About to insert new comment..."
-            
-            comment = { 'author': author, 'email': email, 'message': message, 'date': datetime.utcnow() }
+
+            comment = {'author': author, 'email': email,
+                       'message': message, 'date': datetime.utcnow()}
             insert_comment(permalink, comment)
 
             print "New comment inserted, redirecting to post"
@@ -111,35 +111,40 @@ def post_comment():
             errors = "Sorry, we couldn't save you comment. Please try again."
             return bottle.template("post_view", dict(post=post, username="indefinido", errors=errors, comment=comment))
     else:
-        comment = { 'author': '', 'email': '', 'message': '' }
+        comment = {'author': '', 'email': '', 'message': ''}
 
-        errors="Post must contain your name and an actual comment."
+        errors = "Post must contain your name and an actual comment."
 
         print "New comment error... returning form with errors"
         return bottle.template("post_view", dict(post=post, username="indefinido", errors=errors, comment=comment))
-    
+
     return bottle.redirect("post/" + permalink)
+
 
 @bottle.route("/PostNotFound")
 def get_post_not_found():
     return bottle.template("post_not_found")
 
+
 @bottle.route("/unauthorized")
 def get_unauthorized():
     return bottle.template("unauthorized")
 
+
 @bottle.route("/tag/<tag>")
 def get_posts_by_tag(tag):
     tag = cgi.escape(tag)
-    posts = get_formatted_posts(where = {'tags': tag})
+    posts = get_formatted_posts(where={'tags': tag})
 
-    return bottle.template("tag_search", { 'tag': tag, 'posts': posts, 'username': user })
+    return bottle.template("tag_search", {'tag': tag, 'posts': posts, 'username': user})
+
 
 @bottle.get("/signup")
 def get_signup():
     if login_check():
         return bottle.redirect("/welcome")
-    return bottle.template("user_signup", { 'name': "", 'password': "", 'email': "", 'errors': {}} )
+    return bottle.template("user_signup", {'name': "", 'password': "", 'email': "", 'errors': {}})
+
 
 @bottle.post("/signup")
 def post_signup():
@@ -147,27 +152,29 @@ def post_signup():
     email = bottle.request.forms.get("email")
     password = bottle.request.forms.get("password")
 
-    errors = { }
+    errors = {}
 
-    if user.validate_signup(email, password, errors): 
+    if user.validate_signup(email, password, errors):
         if user.newuser(email, password):
             session_id = user.start_session(email)
-            print session_id 
-            cookie = user.make_secure_val(session_id) 
+            print session_id
+            cookie = user.make_secure_val(session_id)
             bottle.response.set_cookie("session", cookie)
             bottle.redirect("/welcome")
-        else:            
-            errors['email_error'] = "Email already in use. Please choose another" 
-    else: 
-        print "user did not validate" 
+        else:
+            errors['email_error'] = "Email already in use. Please choose another"
+    else:
+        print "user did not validate"
 
-    return bottle.template("user_signup", { 'name': cgi.escape(name), 'password': '', 'email': cgi.escape(email), 'errors': errors} )
+    return bottle.template("user_signup", {'name': cgi.escape(name), 'password': '', 'email': cgi.escape(email), 'errors': errors})
+
 
 @bottle.get("/signin")
 def get_signin():
     if login_check():
         return bottle.redirect("/welcome")
-    return bottle.template("user_signin", { 'email': '', 'password': '', 'error': '' })
+    return bottle.template("user_signin", {'email': '', 'password': '', 'error': ''})
+
 
 @bottle.post("/signin")
 def post_signin():
@@ -179,13 +186,14 @@ def post_signin():
 
         if session_id == -1:
             bottle.redirect("/error")
-        
+
         cookie = user.make_secure_val(session_id)
 
         bottle.response.set_cookie("session", cookie)
         bottle.redirect("/welcome")
     else:
-        return bottle.template("login", { 'email': cgi.escape(email), 'password':'', 'error': 'Invalid login' })
+        return bottle.template("login", {'email': cgi.escape(email), 'password': '', 'error': 'Invalid login'})
+
 
 @bottle.route('/logout')
 def logout():
@@ -206,21 +214,58 @@ def logout():
         bottle.request.set_cookie('session', '')
     else:
         print "No session cookie"
-    
+
     bottle.redirect('/signin')
+
 
 @bottle.route("/welcome")
 def get_welcome():
-    if login_check() == None:
+    user = login_check()
+
+    if user:
+        return bottle.template("user_welcome", {'user': user})
+    return bottle.redirect("/unauthorized")
+
+
+@bottle.route("/categories")
+def get_categories():
+    if login_check() is None:
         return bottle.redirect("/unauthorized")
 
-    # check for a cookie, if present, then extract value 
-    user = login_check()
-    if (user): 
-        return bottle.template("user_welcome", { 'user': user })
+    categories = category.get_categories(include_info=True)
+
+    return bottle.template("category_list", {'categories': categories})
+
+
+@bottle.route("/categories/new")
+def get_new_category():
+    if login_check() is None:
+        return bottle.redirect("/unauthorized")
+
+    return bottle.template("category_new", {'name': '', 'errors': ''})
+
+
+@bottle.post("/categories/new")
+def post_new_category():
+    current_user = login_check()
+
+    if current_user is None:
+        return bottle.redirect("/unauthorized")
+
+    name = bottle.request.forms.get("name")
+
+    if name:
+        category_created = category.insert_category(cgi.escape(name), current_user)
+
+        if category_created:
+            return bottle.redirect("/categories")
+        else:
+            errors = "We couldn't create the category, please try again."
     else:
-        print "Welcome can't identify user...redirecting to signup" 
-        bottle.redirect("/signup") 
+        errors = "Please inform all required fields"
+
+    return bottle.template("category_new", {'name': name, 'errors': errors})
+
 
 def login_check():
     cookie = bottle.request.get_cookie("session")
@@ -230,7 +275,7 @@ def login_check():
 
         if session_id:
             session = user.get_session(session_id)
-            
+
             if session:
                 return session['email']
         else:
@@ -239,9 +284,10 @@ def login_check():
         print "No cookie..."
     return None
 
+
 def extrac_tags(tags):
     whitespace = re.compile('\s')
-    nowhite = whitespace.sub("",tags)
+    nowhite = whitespace.sub("", tags)
     l_tags = nowhite.split(',')
 
     cleaned = []
@@ -250,6 +296,7 @@ def extrac_tags(tags):
             cleaned.append(tag)
 
     return cleaned
+
 
 def insert_post(title, body, tags, author):
     print "Inserting post....", title
@@ -277,13 +324,16 @@ def insert_post(title, body, tags, author):
 
     except:
         print "Error inserting post", sys.exc_info()[0]
-    
+
     return permalink
+
 
 def insert_comment(post_permalink, comment):
     posts = db.get_posts_collection()
 
-    posts.update({ 'permalink': post_permalink }, {'$push': { 'comments': comment } }, upsert=False)
+    posts.update({'permalink': post_permalink}, {
+                 '$push': {'comments': comment}}, upsert=False)
+
 
 def get_formatted_posts(where=None, limit=10):
     print "Getting posts"
@@ -302,7 +352,7 @@ def get_formatted_posts(where=None, limit=10):
 
         if 'comments' not in post:
             post['comments'] = []
-        
+
         formatted_posts.append({
             'title': post['title'],
             'body': post['body'],
@@ -315,11 +365,12 @@ def get_formatted_posts(where=None, limit=10):
 
     return formatted_posts
 
+
 def get_post_by_permalink(permalink):
     posts = db.get_posts_collection()
 
     post = posts.find_one({'permalink': permalink})
-    
+
     if post == None:
         return post
 
@@ -332,10 +383,23 @@ def get_post_by_permalink(permalink):
         post['comments'] = []
     else:
         for comment in post['comments']:
-            comment['date'] = comment['date'].strftime("%A, %B %d %Y at %I:%M%p")
-    
+            comment['date'] = comment['date'].strftime(
+                "%A, %B %d %Y at %I:%M%p")
+
     return post
 
-bottle.TEMPLATE_PATH.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "views")))
+
+appPath = dirname(__file__)
+
+
+@bottle.route('/static/css/<filepath:path>')
+def server_static(filepath):
+    """Tells bottle where to find css files"""
+    return bottle.static_file(filepath, root=join(appPath, 'static/css'))
+
+
+# Avoiding issues with views folder
+bottle.TEMPLATE_PATH.insert(0, abspath(join(appPath, "views")))
+
 bottle.debug(True)
-bottle.run(host='localhost',port=8082)
+bottle.run(host='localhost', port=8082)
