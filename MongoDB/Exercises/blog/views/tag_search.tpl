@@ -4,7 +4,8 @@
         <title>My Blog with Python and MongoDB</title>
     </head>
     <body>
-        <h1>My Blog with Python and MongoDB</h1>
+        <a href="/">Blog Home</a>
+        <h1>Posts with tag: <span>{{ tag }}</span></h1>
         %for post in posts:
         <article class="post">
             <header class="post-title">

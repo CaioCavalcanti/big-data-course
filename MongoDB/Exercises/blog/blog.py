@@ -8,14 +8,25 @@ import hmac
 import user
 import sys
 import os
-
 from pymongo import MongoClient
+
+from os.path import dirname
+
+import user
+import database as db
+
+appPath = dirname(__file__)
+
+@bottle.route('/static/<filepath:path>')
+def server_static(filepath):
+    return bottle.static_file(filepath, root=os.path.join(appPath, 'static'))
 
 @bottle.route("/")
 def blog_index():
     posts = get_formatted_posts()
+    user = login_check()
 
-    return bottle.template('blog_index', dict(posts=posts))
+    return bottle.template('blog_index', { 'posts': posts, 'user': user })
 
 @bottle.route("/post/<permalink>")
 def get_post(permalink="notfound"):
@@ -29,20 +40,23 @@ def get_post(permalink="notfound"):
     if post == None:
         bottle.redirect("/PostNotFound")
     
-    comment = {
-        'author': '',
-        'email': '',
-        'message': ''
-    }
+    user = login_check()
+    comment = { 'author': user, 'email': user, 'message': '' }
 
-    return bottle.template("post_view", dict(post=post, username="undefined", comment=comment, errors=None))
+    return bottle.template("post_view", { 'post': post, 'user': user, 'comment': comment, 'errors': None })
 
 @bottle.route("/newpost")
 def get_newpost():
-    return bottle.template("post_new", dict(subject="", body="",errors="", tags=""))
+    if login_check():
+        return bottle.template("post_new", dict(subject="", body="",errors="", tags=""))
+    return bottle.redirect('/unauthorized')
 
 @bottle.post("/newpost")
 def post_newpost():
+    user = login_check()
+    if user == None:
+        return bottle.redirect('/unauthorized')
+
     title = bottle.request.forms.get("subject")
     post = bottle.request.forms.get("body")
     tags = bottle.request.forms.get("tags")
@@ -63,7 +77,7 @@ def post_newpost():
 
     tags = extrac_tags(tags)
 
-    permalink = insert_post(title, post, tags, "undefined")
+    permalink = insert_post(title, post, tags, user)
 
     bottle.redirect("/post/" + permalink)
 
@@ -110,6 +124,121 @@ def post_comment():
 def get_post_not_found():
     return bottle.template("post_not_found")
 
+@bottle.route("/unauthorized")
+def get_unauthorized():
+    return bottle.template("unauthorized")
+
+@bottle.route("/tag/<tag>")
+def get_posts_by_tag(tag):
+    tag = cgi.escape(tag)
+    posts = get_formatted_posts(where = {'tags': tag})
+
+    return bottle.template("tag_search", { 'tag': tag, 'posts': posts, 'username': user })
+
+@bottle.get("/signup")
+def get_signup():
+    if login_check():
+        return bottle.redirect("/welcome")
+    return bottle.template("user_signup", { 'name': "", 'password': "", 'email': "", 'errors': {}} )
+
+@bottle.post("/signup")
+def post_signup():
+    name = bottle.request.forms.get("name")
+    email = bottle.request.forms.get("email")
+    password = bottle.request.forms.get("password")
+
+    errors = { }
+
+    if user.validate_signup(email, password, errors): 
+        if user.newuser(email, password):
+            session_id = user.start_session(email)
+            print session_id 
+            cookie = user.make_secure_val(session_id) 
+            bottle.response.set_cookie("session", cookie)
+            bottle.redirect("/welcome")
+        else:            
+            errors['email_error'] = "Email already in use. Please choose another" 
+    else: 
+        print "user did not validate" 
+
+    return bottle.template("user_signup", { 'name': cgi.escape(name), 'password': '', 'email': cgi.escape(email), 'errors': errors} )
+
+@bottle.get("/signin")
+def get_signin():
+    if login_check():
+        return bottle.redirect("/welcome")
+    return bottle.template("user_signin", { 'email': '', 'password': '', 'error': '' })
+
+@bottle.post("/signin")
+def post_signin():
+    email = bottle.request.forms.get("email")
+    password = bottle.request.forms.get("password")
+
+    if user.validate_login(email, password):
+        session_id = user.start_session(email)
+
+        if session_id == -1:
+            bottle.redirect("/error")
+        
+        cookie = user.make_secure_val(session_id)
+
+        bottle.response.set_cookie("session", cookie)
+        bottle.redirect("/welcome")
+    else:
+        return bottle.template("login", { 'email': cgi.escape(email), 'password':'', 'error': 'Invalid login' })
+
+@bottle.route('/logout')
+def logout():
+    cookie = bottle.request.get_cookie('session')
+
+    if cookie:
+        session_id = user.check_secure_val(cookie)
+
+        if session_id:
+            print "Clearing session..."
+            user.end_session(session_id)
+            print "Session cleared"
+
+            bottle.redirect('/signin')
+        else:
+            print "Session is not valid"
+
+        bottle.request.set_cookie('session', '')
+    else:
+        print "No session cookie"
+    
+    bottle.redirect('/signin')
+
+@bottle.route("/welcome")
+def get_welcome():
+    if login_check() == None:
+        return bottle.redirect("/unauthorized")
+
+    # check for a cookie, if present, then extract value 
+    user = login_check()
+    if (user): 
+        return bottle.template("user_welcome", { 'user': user })
+    else:
+        print "Welcome can't identify user...redirecting to signup" 
+        bottle.redirect("/signup") 
+
+def login_check():
+    cookie = bottle.request.get_cookie("session")
+
+    if(cookie):
+        session_id = user.check_secure_val(cookie)
+
+        if session_id:
+            session = user.get_session(session_id)
+            
+            if session:
+                return session['email']
+        else:
+            print "No secure session_id"
+    else:
+        print "No cookie..."
+    return None
+
 def extrac_tags(tags):
     whitespace = re.compile('\s')
     nowhite = whitespace.sub("",tags)
@@ -125,9 +254,7 @@ def extrac_tags(tags):
 def insert_post(title, body, tags, author):
     print "Inserting post....", title
 
-    # DB
-    db = connect_db()
-    posts = db.posts
+    posts = db.get_posts_collection()
 
     # Combine everything that isn't alphanumeric
     exp = re.compile('\W')
@@ -154,17 +281,16 @@ def insert_post(title, body, tags, author):
     return permalink
 
 def insert_comment(post_permalink, comment):
-    db = connect_db()
-    posts = db.posts
+    posts = db.get_posts_collection()
 
     posts.update({ 'permalink': post_permalink }, {'$push': { 'comments': comment } }, upsert=False)
 
-def get_formatted_posts():
+def get_formatted_posts(where=None, limit=10):
     print "Getting posts"
 
-    db = connect_db()
-    posts = db.posts
-    cursor = posts.find().sort('date', direction=-1).limit(10)
+    posts = db.get_posts_collection()
+
+    cursor = posts.find(where).sort('date', direction=-1).limit(limit)
 
     formatted_posts = []
 
@@ -190,8 +316,7 @@ def get_formatted_posts():
     return formatted_posts
 
 def get_post_by_permalink(permalink):
-    db = connect_db()
-    posts = db.posts
+    posts = db.get_posts_collection()
 
     post = posts.find_one({'permalink': permalink})
     
@@ -210,11 +335,6 @@ def get_post_by_permalink(permalink):
             comment['date'] = comment['date'].strftime("%A, %B %d %Y at %I:%M%p")
     
     return post
-
-def connect_db():
-    connection = MongoClient('localhost', 27017)
-    db = connection.blog
-    return db
 
 bottle.TEMPLATE_PATH.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "views")))
 bottle.debug(True)
