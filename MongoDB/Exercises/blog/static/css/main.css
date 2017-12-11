@@ -22,6 +22,9 @@ footer i.fa {
 .post-comment .post-comment-date {
     margin: 0px;
 }
+.post-card {
+    display: block;
+}
 .post-card .post-info {
     color: #8a8a8a !important;
     margin-bottom: 15px !important;

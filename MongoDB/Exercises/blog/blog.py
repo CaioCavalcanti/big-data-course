@@ -34,7 +34,7 @@ def get_post(permalink="notfound"):
     post = get_post_by_permalink(permalink)
 
     if post is None:
-        bottle.redirect("/PostNotFound")
+        bottle.redirect("/post/" + permalink + "/not_found")
 
     user = get_current_user()
     comment = {'author': user, 'email': user, 'message': ''}
@@ -124,9 +124,9 @@ def post_comment():
     return bottle.redirect("post/" + permalink)
 
 
-@bottle.route("/PostNotFound")
-def get_post_not_found():
-    return bottle.template("post_not_found")
+@bottle.route("/post/<permalink>/not_found")
+def get_post_not_found(permalink):
+    return bottle.template("post_not_found", { 'post': permalink})
 
 
 @bottle.route("/unauthorized")

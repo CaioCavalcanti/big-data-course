@@ -1,36 +1,33 @@
-<!doctype HTML>
-<html>
-    <head>
-        <title>Blog - Signup</title>
-    </head>
-    <body>
-        <a href="/">Blog Home</a>
-        <h1>Signup</h1>
-        <form action="/signup" method="POST">
-            <div class="input-field">
-                <input type="text" id="name" name="name" placeholder="Name" class="validate" value="{{ name }}" required />
-                <label for="name">Name *</label>
-                %if 'name_error' in errors:
-                <span class="helper-text" data-error="wrong" data-success="right">{{ errors['name_error'] }}</span>
-                %end
-            </div>
-            <div class="input-field">
-                <input type="email" id="email" name="email" placeholder="Email" class="validate" value="{{ email }}" required />
-                <label for="email">Email *</label>
-                %if 'email_error' in errors:
-                <span class="helper-text" data-error="wrong" data-success="right">{{ errors['email_error'] }}</span>
-                %end
-            </div>
-            <div class="input-field">
-                <input type="password" id="password" name="password" placeholder="Password" class="validate" value="{{ password }}" required />
-                <label for="password">Password *</label>
-                %if 'password_error' in errors:
-                <span class="helper-text" data-error="wrong" data-success="right">{{ errors['password_error'] }}</span>
-                %end
-            </div>
-            <div>
-                <input type="submit" value="Submit" class="waves-effect waves-light btn" />
-            </div>
-        </form>
-    </body>
-</html>
+% rebase('base', title='Signup')
+
+<div class="row">
+    <div class="col s12">
+        <h3>Signup</h3>
+    </div>
+    <form action="/signup" method="POST" class="col s12">
+        <div class="input-field">
+            <input type="text" id="name" name="name" placeholder="Name" class="validate" value="{{ name }}" required />
+            <label for="name">Name *</label>
+            %if 'name_error' in errors:
+            <span class="helper-text" data-error="wrong" data-success="right">{{ errors['name_error'] }}</span>
+            %end
+        </div>
+        <div class="input-field">
+            <input type="email" id="email" name="email" placeholder="Email" class="validate" value="{{ email }}" required />
+            <label for="email">Email *</label>
+            %if 'email_error' in errors:
+            <span class="helper-text" data-error="wrong" data-success="right">{{ errors['email_error'] }}</span>
+            %end
+        </div>
+        <div class="input-field">
+            <input type="password" id="password" name="password" placeholder="Password" class="validate" value="{{ password }}" required />
+            <label for="password">Password *</label>
+            %if 'password_error' in errors:
+            <span class="helper-text" data-error="wrong" data-success="right">{{ errors['password_error'] }}</span>
+            %end
+        </div>
+        <div class="right-align">
+            <button type="submit" class="waves-effect waves-light btn">Submit</button>
+        </div>
+    </form>
+</div>

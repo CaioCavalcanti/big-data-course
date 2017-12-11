@@ -1,14 +1,14 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Blog - Welcome</title>
-    </head>
-    <body>
-        <a href="/">Blog Home</a>
-        <h1>Welcome {{ user }}!</h1>
-        <div>
-            <a href="/logout" class="waves-effect waves-light btn">Logout</a>
-            <a href="/newpost" class="waves-effect waves-light btn">Create a new post</a>
+% rebase('base', title='Welcome')
+
+<div class="row">
+    <div class="col s12">
+        <h3>Welcome {{ user }}!</h3>
+    </div>
+    <div class="col s12">
+        <div class="collection">
+            <a href="/category" class="collection-item">Manage categories</a>
+            <a href="/post/new" class="collection-item">Create a new post</a>
+            <a href="/logout" class="collection-item">Logout</a>
         </div>
-    </body>
-</html>
+    </div>
+</div>
