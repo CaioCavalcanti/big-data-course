@@ -1,7 +1,7 @@
 % rebase('base', title='Categories')
 <h3>Categories</h3>
 <div class="">
-    <a href="/categories/new" class="waves-effect waves-light btn">
+    <a href="/category/new" class="waves-effect waves-light btn">
         <i class="material-icons left">add</i> New category
     </a>
 </div>
@@ -11,15 +11,23 @@
 <ul class="collapsible">
     %for category in categories:
     <li>
-        <div class="collapsible-header">{{ category['name'] }}</div>
+        <div class="collapsible-header">
+            {{ category['name'] }}<span class="new badge"  data-badge-caption="{{ 'posts' if category['posts'] != 1 else 'post' }}">{{ category['posts'] }}</span>
+        </div>
         <div class="collapsible-body">
-            <label>Created by:
-                <span>{{ category['created_by'] }}</span>
-            </label>
-            <label>Created:
-                <span>{{ category['date'] }}</span>
-            </label>
-            <a href="/categories/{{ category['name'] }}" class="waves-effect waves-light btn">{{ category['posts'] }} posts</a>
+            <div class="row">
+                <div class="col s12">
+                    <label>Created by:</label>
+                    <span>{{ category['created_by'] }}</span>
+                </div>
+                <div class="col s12">
+                    <label>Created:</label>
+                    <span>{{ category['date'] }}</span>
+                </div>
+                <div class="col s12">
+                    <a href="/category/{{ category['id'] }}" class="waves-effect waves-light btn">See posts</a>
+                </div>
+            </div>
         </div>
     </li>
     %end

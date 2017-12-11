@@ -1,0 +1,51 @@
+% rebase('base', title='New post')
+
+<div class="row">
+    <div class="col s12">
+        <h3>New post</h3>
+    </div>
+    <form class="col s12" action="/post/new" method="POST">
+        <div class="row">
+            <div class="col s12">
+                %if errors:
+                <div class="card red darken-1">
+                    <div class="card-content white-text">
+                        <span class="card-title">Error</span>
+                        <p>{{ errors }}</p>
+                    </div>
+                </div>
+                %end
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s12">
+                <input value="{{ title }}" required name="title" placeholder="Title" type="text" class="validate">
+                <label for="title">Title</label>
+            </div>
+            <div class="input-field col s12">
+                <select required name="category">
+                    <option value="" disabled {{ 'selected' if category is "" else "" }}>Choose your option</option>
+                    %for category_option in categories:
+                    <option value="{{ category_option['id'] }}" {{ 'selected' if category is category_option[ 'id'] else "" }}>{{ category_option['name'] }}</option>
+                    %end
+                </select>
+                <label for="Category">Category</label>
+            </div>
+            <div class="input-field col s12">
+                <input value="{{ tags }}" name="tags" placeholder="Tags (comma separated)" type="text">
+                <label for="tags">Tags</label>
+            </div>
+            <div class="input-field col s12">
+                <textarea name="body" required rows="20" class="validate materialize-textarea">{{ body }}</textarea>
+                <label for="body">Body</label>
+            </div>
+        </div>
+        <a href="/" class="waves-effect waves-light btn">Cancel</a>
+        <button type="submit" class="waves-effect waves-light btn">Submit</button>
+    </form>
+</div>
+
+<script>
+    var elem = document.querySelector('select');
+    var instance = new M.Select(elem);
+</script>

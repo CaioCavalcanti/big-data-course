@@ -19,7 +19,7 @@ import category
 @bottle.route("/")
 def blog_index():
     posts = get_formatted_posts()
-    user = login_check()
+    user = get_current_user()
 
     return bottle.template('blog_index', {'posts': posts, 'user': user})
 
@@ -33,49 +33,52 @@ def get_post(permalink="notfound"):
 
     post = get_post_by_permalink(permalink)
 
-    if post == None:
+    if post is None:
         bottle.redirect("/PostNotFound")
 
-    user = login_check()
+    user = get_current_user()
     comment = {'author': user, 'email': user, 'message': ''}
 
     return bottle.template("post_view", {'post': post, 'user': user, 'comment': comment, 'errors': None})
 
 
-@bottle.route("/newpost")
+@bottle.route("/post/new")
 def get_newpost():
-    if login_check():
-        return bottle.template("post_new", dict(subject="", body="", errors="", tags=""))
+    if get_current_user():
+        categories = category.get_category_options()
+
+        return bottle.template("post_new", {'title': "", 'body': "",  'tags': "", 'category': "", 'categories': categories, 'errors': ""})
     return bottle.redirect('/unauthorized')
 
 
-@bottle.post("/newpost")
+@bottle.post("/post/new")
 def post_newpost():
-    user = login_check()
-    if user == None:
+    user = get_current_user()
+    if user is None:
         return bottle.redirect('/unauthorized')
 
-    title = bottle.request.forms.get("subject")
-    post = bottle.request.forms.get("body")
+    title = bottle.request.forms.get("title")
+    body = bottle.request.forms.get("body")
     tags = bottle.request.forms.get("tags")
+    category_id = bottle.request.forms.get("category")
 
     # Check mandatory fields
-    if (title == "" or post == ""):
+    if (title == "" or body == ""):
         errors = "Posts must contain a tittle and blog entry"
         return bottle.template("post_new", dict(
             subject=cgi.escape(title, quote=True),
-            body=cgi.escape(post, quote=True),
+            body=cgi.escape(body, quote=True),
             tags=tags,
             errors=errors))
 
-    escaped_post = cgi.escape(post, quote=True)
+    escaped_post = cgi.escape(body, quote=True)
 
     newline = re.compile('\r?\n')
     formatted_post = newline.sub("<p>", escaped_post)
 
     tags = extrac_tags(tags)
 
-    permalink = insert_post(title, post, tags, user)
+    permalink = insert_post(title, body, category_id, tags, user)
 
     bottle.redirect("/post/" + permalink)
 
@@ -92,7 +95,7 @@ def post_comment():
 
     post = get_post_by_permalink(permalink)
 
-    if post == None:
+    if post is None:
         return bottle.redirect('PostNotFound')
 
     if author or email or message:
@@ -141,7 +144,7 @@ def get_posts_by_tag(tag):
 
 @bottle.get("/signup")
 def get_signup():
-    if login_check():
+    if get_current_user():
         return bottle.redirect("/welcome")
     return bottle.template("user_signup", {'name': "", 'password': "", 'email': "", 'errors': {}})
 
@@ -171,7 +174,7 @@ def post_signup():
 
 @bottle.get("/signin")
 def get_signin():
-    if login_check():
+    if get_current_user():
         return bottle.redirect("/welcome")
     return bottle.template("user_signin", {'email': '', 'password': '', 'error': ''})
 
@@ -220,16 +223,16 @@ def logout():
 
 @bottle.route("/welcome")
 def get_welcome():
-    user = login_check()
+    user = get_current_user()
 
     if user:
         return bottle.template("user_welcome", {'user': user})
     return bottle.redirect("/unauthorized")
 
 
-@bottle.route("/categories")
+@bottle.route("/category")
 def get_categories():
-    if login_check() is None:
+    if get_current_user() is None:
         return bottle.redirect("/unauthorized")
 
     categories = category.get_categories(include_info=True)
@@ -237,17 +240,17 @@ def get_categories():
     return bottle.template("category_list", {'categories': categories})
 
 
-@bottle.route("/categories/new")
+@bottle.route("/category/new")
 def get_new_category():
-    if login_check() is None:
+    if get_current_user() is None:
         return bottle.redirect("/unauthorized")
 
     return bottle.template("category_new", {'name': '', 'errors': ''})
 
 
-@bottle.post("/categories/new")
+@bottle.post("/category/new")
 def post_new_category():
-    current_user = login_check()
+    current_user = get_current_user()
 
     if current_user is None:
         return bottle.redirect("/unauthorized")
@@ -255,10 +258,11 @@ def post_new_category():
     name = bottle.request.forms.get("name")
 
     if name:
-        category_created = category.insert_category(cgi.escape(name), current_user)
+        category_created = category.insert_category(
+            cgi.escape(name), current_user)
 
         if category_created:
-            return bottle.redirect("/categories")
+            return bottle.redirect("/category")
         else:
             errors = "We couldn't create the category, please try again."
     else:
@@ -267,7 +271,26 @@ def post_new_category():
     return bottle.template("category_new", {'name': name, 'errors': errors})
 
 
-def login_check():
+@bottle.route("/category/<category_id>")
+def get_posts_by_category(category_id):
+    category_id = cgi.escape(category_id)
+
+    cat = category.get_category_by_id(category_id)
+
+    if cat is None:
+        return bottle.redirect("/category/" + category_id + "/not_found")
+
+    posts = get_formatted_posts(where={'category_id': category_id})
+
+    return bottle.template("category_search", {'category': cat, 'posts': posts})
+
+
+@bottle.route("/category/<category_id>/not_found")
+def get_category_not_found(category_id):
+    return bottle.template("category_not_found", {'category': category_id})
+
+
+def get_current_user():
     cookie = bottle.request.get_cookie("session")
 
     if(cookie):
@@ -298,7 +321,7 @@ def extrac_tags(tags):
     return cleaned
 
 
-def insert_post(title, body, tags, author):
+def insert_post(title, body, category_id, tags, author):
     print "Inserting post....", title
 
     posts = db.get_posts_collection()
@@ -315,6 +338,7 @@ def insert_post(title, body, tags, author):
         "body": body,
         "permalink": permalink,
         "tags": tags,
+        "category_id": category_id,
         "date": datetime.utcnow()
     }
 
@@ -353,6 +377,14 @@ def get_formatted_posts(where=None, limit=10):
         if 'comments' not in post:
             post['comments'] = []
 
+        post['category'] = ''
+
+        if 'category_id' in post:
+            post_category = category.get_category_by_id(post['category_id'])
+
+            if post_category:
+                post['category'] = post_category['name']
+
         formatted_posts.append({
             'title': post['title'],
             'body': post['body'],
@@ -360,7 +392,9 @@ def get_formatted_posts(where=None, limit=10):
             'permalink': post['permalink'],
             'author': post['author'],
             'tags': post['tags'],
-            'comments': post['comments']
+            'comments': post['comments'],
+            'category': post['category'],
+            'category_id': post['category_id']
         })
 
     return formatted_posts
@@ -371,10 +405,18 @@ def get_post_by_permalink(permalink):
 
     post = posts.find_one({'permalink': permalink})
 
-    if post == None:
+    if post is None:
         return post
 
     post['date'] = post['date'].strftime("%A, %B %d %Y at %I:%M%p")
+
+    post['category'] = ''
+
+    if 'category_id' in post:
+        post_category = category.get_category_by_id(post['category_id'])
+
+        if post_category:
+            post['category'] = post_category['name']
 
     if 'tags' not in post:
         post['tags'] = []
@@ -397,6 +439,8 @@ def server_static(filepath):
     """Tells bottle where to find css files"""
     return bottle.static_file(filepath, root=join(appPath, 'static/css'))
 
+
+bottle.BaseTemplate.defaults['current_user'] = get_current_user
 
 # Avoiding issues with views folder
 bottle.TEMPLATE_PATH.insert(0, abspath(join(appPath, "views")))

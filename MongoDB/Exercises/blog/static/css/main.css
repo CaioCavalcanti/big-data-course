@@ -15,3 +15,25 @@ footer i.fa {
     font-size: 25px;
     margin-left: 15px;
 }
+.card .row,
+.collapsible-body .row {
+    margin-bottom: 0px;
+}
+.post-comment .post-comment-date {
+    margin: 0px;
+}
+.post-card .post-info {
+    color: #8a8a8a !important;
+    margin-bottom: 15px !important;
+}
+.post-card .card-action {
+    overflow: hidden;
+}
+.post-card .post-tags {
+    margin-left: 10px;
+}
+.post-card .post-tags .post-tag {
+    margin-right: 0px !important;
+    color: #000 !important;
+    margin-bottom: 0px;
+}
